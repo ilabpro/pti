@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "A9D06B33AE317FC122096BB9E39993F67E89CE8A",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "A9D06B33AE317FC122096BB9E39993F67E89CE8A" : 0,
+    "6410C9C022C2425983CED9EA7A7E8B37DC83DA6F" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "0A3445F9-2D7F-4728-96B9-B8C5B79A99C6",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "A9D06B33AE317FC122096BB9E39993F67E89CE8A" : "PTI\/",
+    "6410C9C022C2425983CED9EA7A7E8B37DC83DA6F" : "PTI\/Pods\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "PTI",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 203,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "PTI.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/ilabpro\/pod.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "6410C9C022C2425983CED9EA7A7E8B37DC83DA6F"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/ilabpro\/pti.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "A9D06B33AE317FC122096BB9E39993F67E89CE8A"
+    }
+  ]
+}
