@@ -406,9 +406,9 @@ UIGestureRecognizer *tapper;
     NSArray *indexPaths = [[NSArray alloc] initWithObjects:[NSIndexPath indexPathForRow:2 inSection:3], [NSIndexPath indexPathForRow:3 inSection:3], nil];
     [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
    
-    //threecolTableViewCell *cell1 = [self.tableView cellForRowAtIndexPath:indexPath];
-    //cell1.header8.text = @"12345";
-    //cell1.header9.text = @"12345";
+    threecolTableViewCell *cell1 = [self.tableView cellForRowAtIndexPath:indexPath];
+    cell1.header8.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/count_kg] doubleValue]];
+    cell1.header9.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg] doubleValue]];
     
     
 }
@@ -432,23 +432,23 @@ UIGestureRecognizer *tapper;
     [fResult next];
     
     NSString* markupText =[NSString stringWithFormat:@"<html><head><meta charset=\"UTF-8\"><style>table, th, td{border: 1px solid #6e6e6e;}</style></head><body><h1>%@</h1>"
-                           "<h3>Оболочка: %@</h3><table width=\"100%%\" border=\"0\"><tbody><tr><th style=\"text-align:left;width:70%%\">Сырье</th><th style=\"text-align:right;width:15%%\">"
-                           "%.02f кг</th><th style=\"text-align:right\">%.02f%%</th></tr>",[[MySingleton sharedManager] current_recept_name] ,obolochka_rec, count_kg_sir, count_prop_sir];//[fResult stringForColumnIndex:0]
+                           "<h3>Оболочка: %@</h3><table width=\"100%%\" border=\"0\"><tbody><tr><th style=\"text-align:left;width:30%%\">Сырье</th><th style=\"text-align:right;width:15%%\">"
+                           "%.02f кг</th><th style=\"text-align:right\">%.02f%%</th><th style=\"text-align:right\">Цена за кг.</th><th style=\"text-align:right\">В фарше</th><th style=\"text-align:right\">В готовом продукте</th></tr>",[[MySingleton sharedManager] current_recept_name] ,obolochka_rec, count_kg_sir, count_prop_sir];//[fResult stringForColumnIndex:0]
     [db close];
     
     for (RecSirIngrInfo *recInf in self.detailListSir) {
         
-        markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"<tr><td style=\"text-align:left\">%@</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%g</td></tr>",recInf.material ,[recInf.kg doubleValue], [recInf.prop doubleValue]]];
+        markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"<tr><td style=\"text-align:left\">%@</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%@</td><td style=\"text-align:right\">%@</td></tr>",recInf.material ,[recInf.kg doubleValue], [recInf.prop doubleValue], [recInf.price doubleValue], [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/count_kg] doubleValue]], [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg] doubleValue]]]];
     }
     
-    markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"</tbody></table><br/><br/><table width=\"100%%\" border=\"0\"><tbody><tr><th style=\"text-align:left;width:70%%\">Ингредиенты</th><th style=\"text-align:right;width:15%%\">%.02f кг</th><th style=\"text-align:right\">%.02f%%</th></tr>",count_kg_ingr ,count_prop_ingr]];
+    markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"</tbody></table><br/><br/><table width=\"100%%\" border=\"0\"><tbody><tr><th style=\"text-align:left;width:30%%\">Ингредиенты</th><th style=\"text-align:right;width:15%%\">%.02f кг</th><th style=\"text-align:right\">%.02f%%</th><th style=\"text-align:right\">Цена за кг.</th><th style=\"text-align:right\">В фарше</th><th style=\"text-align:right\">В готовом продукте</th></tr>",count_kg_ingr ,count_prop_ingr]];
     
     for (RecSirIngrInfo *recInf in self.detailListIngr) {
         
-        markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"<tr><td style=\"text-align:left\">%@</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%g</td></tr>",recInf.material ,[recInf.kg doubleValue], [recInf.prop doubleValue]]];
+        markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"<tr><td style=\"text-align:left\">%@</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%g</td><td style=\"text-align:right\">%@</td><td style=\"text-align:right\">%@</td></tr>",recInf.material ,[recInf.kg doubleValue], [recInf.prop doubleValue], [recInf.price doubleValue], [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/count_kg] doubleValue]], [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg] doubleValue]]]];
     }
     
-    markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"</tbody></table><h3>Потери: %@</h3></body></html>",[NSString stringWithFormat:@"%d",[poteri_rec intValue]]]];
+    markupText = [markupText stringByAppendingString:[NSString stringWithFormat:@"<tr><th style=\"text-align:right;width:30%%\">Итого цена 1 кг. фарша</th><th colspan=\"5\" style=\"text-align:right\">%@</th></tr><tr><th style=\"text-align:right;width:30%%\">Итого цена 1 кг. продукта</th><th colspan=\"5\" style=\"text-align:right\">%@</th></tr></tbody></table><h3>Потери: %@</h3></body></html>",[NSString stringWithFormat:@"%.02f руб.", count_sum_price/count_kg], [NSString stringWithFormat:@"%.02f руб.", count_vklad],[NSString stringWithFormat:@"%d",[poteri_rec intValue]]]];
     
     return markupText;
     
