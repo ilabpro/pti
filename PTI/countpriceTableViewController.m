@@ -19,7 +19,6 @@
 @implementation countpriceTableViewController
 @synthesize writableDBPath;
 
-UIGestureRecognizer *tapper;
 double count_sum;
 double count_sum_kg;
 
@@ -32,10 +31,10 @@ double count_sum_kg;
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
-    tapper = [[UITapGestureRecognizer alloc]
-              initWithTarget:self action:@selector(handleSingleTap:)];
-    tapper.cancelsTouchesInView = NO;
-    [self.view addGestureRecognizer:tapper];
+    //tapper = [[UITapGestureRecognizer alloc]
+    //          initWithTarget:self action:@selector(handleSingleTap:)];
+    //tapper.cancelsTouchesInView = NO;
+    //[self.view addGestureRecognizer:tapper];
    
     count_sum = 0.0;
     

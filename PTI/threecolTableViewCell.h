@@ -12,5 +12,15 @@
 @property (weak, nonatomic) IBOutlet UILabel *header1;
 @property (weak, nonatomic) IBOutlet UILabel *header2;
 @property (weak, nonatomic) IBOutlet UILabel *header3;
+@property (weak, nonatomic) IBOutlet UILabel *header4;
+@property (weak, nonatomic) IBOutlet UILabel *header5;
+@property (weak, nonatomic) IBOutlet UILabel *header6;
+
+@property (weak, nonatomic) IBOutlet UITextField *header7;
+@property (weak, nonatomic) IBOutlet UILabel *header8;
+@property (weak, nonatomic) IBOutlet UILabel *header9;
+
+
+
 
 @end

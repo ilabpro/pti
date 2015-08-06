@@ -29,8 +29,8 @@ double count_prop_sir;
 double count_kg_ingr;
 double count_prop_ingr;
 
-double count_sum_price;
-
+double count_sum_price,count_vklad;
+UIGestureRecognizer *tapper;
 
 @implementation detailTableViewController
 @synthesize writableDBPath;
@@ -44,7 +44,10 @@ double count_sum_price;
     
     self.navigationItem.rightBarButtonItems = [[NSArray alloc] initWithObjects:homeBarButtonItem, historyBarButtonItem, nil];
     
-    
+    tapper = [[UITapGestureRecognizer alloc]
+              initWithTarget:self action:@selector(handleSingleTap:)];
+    tapper.cancelsTouchesInView = NO;
+    [self.view addGestureRecognizer:tapper];
     
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
@@ -52,6 +55,10 @@ double count_sum_price;
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
+}
+- (void)handleSingleTap:(UITapGestureRecognizer *) sender
+{
+    [self.view endEditing:YES];
 }
 - (void)gohome {
     [self performSegueWithIdentifier:@"goHome" sender:nil];
@@ -63,6 +70,7 @@ double count_sum_price;
 }
 - (void)viewWillAppear:(BOOL)animated
 {
+    [super viewWillAppear:animated];
     [self.navigationController setToolbarHidden:NO animated:YES];
     
     [self doLog:[NSString stringWithFormat:@"Просмотр деталей рецептуры %@ через iOS", [[MySingleton sharedManager] current_recept_name]]];
@@ -105,7 +113,7 @@ double count_sum_price;
     count_kg_ingr = 0.0;
     count_prop_ingr = 0.0;
     count_sum_price = 0.0;
-    
+    count_vklad = 0.0;
     
     NSMutableArray *recSirArrayTemp = [[NSMutableArray alloc] init];
     fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `raw_material`, `kg`, `raw_prop`, (SELECT `price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as price FROM products_info WHERE product_list_name='%@' and `type`='1'", [[MySingleton sharedManager] selected_recept_name]]];
@@ -124,6 +132,7 @@ double count_sum_price;
         recSirInfo.price = [fResult stringForColumnIndex:3];
         
         count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:3];
+        
         
         [recSirArrayTemp addObject:recSirInfo];
         //NSLog(@"%@", productsArray);
@@ -164,10 +173,21 @@ double count_sum_price;
         
     }
     
+   
+    
+    
+    
+    
     
     self.detailListIngr = recIngrArrayTemp;
     
     
+    for (RecSirIngrInfo *cell in self.detailListSir) {
+        count_vklad += [cell.kg doubleValue]*[cell.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg;
+    }
+    for (RecSirIngrInfo *cell in self.detailListIngr) {
+        count_vklad += [cell.kg doubleValue]*[cell.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg;
+    }
     
     
     
@@ -215,7 +235,7 @@ double count_sum_price;
         return [self.detailListIngr count]+1;
     }
     else if(section==3) {
-        return 2;
+        return 4;
     }
     return 0;
 }
@@ -243,15 +263,31 @@ double count_sum_price;
             cell1.header1.text = @"Сырье";
             cell1.header2.text = [NSString stringWithFormat:@"%.02f кг", count_kg_sir];//[NSString stringWithFormat:@"%@ кг", [@(count_kg_sir) stringValue]];
             cell1.header3.text = [NSString stringWithFormat:@"%.02f%%", count_prop_sir];//[NSString stringWithFormat:@"%@%%", [@(count_prop_sir) stringValue]];
+            cell1.header4.text = @"Цена за кг.";
+            cell1.header5.text = @"В фарше";
+            cell1.header6.text = @"В готовом продукте";
             return cell1;
         }
         else if(indexPath.row>0) {
             RecSirIngrInfo *recInf = self.detailListSir[indexPath.row-1];
+            
             cell1 = [tableView dequeueReusableCellWithIdentifier:@"CellRows" forIndexPath:indexPath];
             cell1.header1.text = recInf.material;
             cell1.header2.text = [NSString stringWithFormat:@"%g", [recInf.kg doubleValue]];//[@([recInf.kg doubleValue]) stringValue];
             cell1.header3.text = [NSString stringWithFormat:@"%g", [recInf.prop doubleValue]];//[@([recInf.prop doubleValue]) stringValue];
+            cell1.header7.text = [@([recInf.price doubleValue]) stringValue];
+            cell1.header7.tag = indexPath.row-1;
+           
+            [cell1.header7 addTarget:self
+                              action:@selector(countMoney:)
+                    forControlEvents:UIControlEventEditingChanged];
+            cell1.header8.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/count_kg] doubleValue]];
+            cell1.header9.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg] doubleValue]];
+            
+            
+            
             return cell1;
+           
         }
     }
     else if(indexPath.section==2) {
@@ -261,15 +297,30 @@ double count_sum_price;
             cell1.header1.text = @"Ингредиенты";
             cell1.header2.text = [NSString stringWithFormat:@"%.02f кг", count_kg_ingr];//[NSString stringWithFormat:@"%@ кг", [@(count_kg_ingr) stringValue]];
             cell1.header3.text = [NSString stringWithFormat:@"%.02f%%", count_prop_ingr];//[NSString stringWithFormat:@"%@%%", [@(count_prop_ingr) stringValue]];
+            cell1.header4.text = @"Цена за кг.";
+            cell1.header5.text = @"В фарше";
+            cell1.header6.text = @"В готовом продукте";
             return cell1;
         }
         else if(indexPath.row>0) {
+            
+            
             RecSirIngrInfo *recInf = self.detailListIngr[indexPath.row-1];
+            
             cell1 = [tableView dequeueReusableCellWithIdentifier:@"CellRows" forIndexPath:indexPath];
             cell1.header1.text = recInf.material;
             cell1.header2.text = [NSString stringWithFormat:@"%g", [recInf.kg doubleValue]];//[@([recInf.kg doubleValue]) stringValue];
             cell1.header3.text = [NSString stringWithFormat:@"%g", [recInf.prop doubleValue]];//[@([recInf.prop doubleValue]) stringValue];
+            cell1.header7.text = [@([recInf.price doubleValue]) stringValue];
+            cell1.header7.tag = indexPath.row-1+100;
+           
+            [cell1.header7 addTarget:self
+                              action:@selector(countMoney:)
+                    forControlEvents:UIControlEventEditingChanged];
+            cell1.header8.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/count_kg] doubleValue]];
+            cell1.header9.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg] doubleValue]];
             return cell1;
+
         }
     }
     else if(indexPath.section==3) {
@@ -279,25 +330,95 @@ double count_sum_price;
             cell1.header1.text = @"Общее кол-во";
             cell1.header2.text = [NSString stringWithFormat:@"%.02f кг", count_kg];
             cell1.header3.text = [NSString stringWithFormat:@"%.02f%%", count_prop];
+            cell1.header4.text = @"";
+            cell1.header5.text = @"";
+            cell1.header6.text = @"";
             return cell1;
         }
-        else if(indexPath.row>0) {
+        else if(indexPath.row==1) {
             cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
             cell.textLabel.text = @"Потери";
             
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%d",[poteri_rec intValue]];
             return cell;
         }
+        else if(indexPath.row==2) {
+            cell1 = [tableView dequeueReusableCellWithIdentifier:@"CellHeader2" forIndexPath:indexPath];
+            cell1.header1.text = @"Итого цена 1 кг. фарша";
+            cell1.header3.text = [NSString stringWithFormat:@"%.02f руб.", count_sum_price/count_kg];
+            return cell1;
+        }
+        else if(indexPath.row==3) {
+            cell1 = [tableView dequeueReusableCellWithIdentifier:@"CellHeader2" forIndexPath:indexPath];
+            cell1.header1.text = @"Итого цена 1 кг. продукта";
+            cell1.header3.text = [NSString stringWithFormat:@"%.02f руб.", count_vklad];
+            return cell1;
+        }
     }
 
     else {
         cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
     }
+   
     
    
     
     return cell;
   
+}
+- (void)countMoney:(UITextField *)theTextField {
+    
+    // Dispose of any resources that can be recreated.
+    count_sum_price = 0.0;
+    count_vklad = 0.0;
+    
+    RecSirIngrInfo *recInf;
+    NSIndexPath *indexPath;
+   
+    
+    if(theTextField.tag >= 100)
+    {
+        recInf = self.detailListIngr[theTextField.tag-100];
+        indexPath = [NSIndexPath indexPathForRow:theTextField.tag-100+1 inSection:2];
+    }
+    else
+    {
+        recInf = self.detailListSir[theTextField.tag];
+        indexPath = [NSIndexPath indexPathForRow:theTextField.tag+1 inSection:1];
+    }
+    
+    recInf.price = theTextField.text;
+    
+    
+    
+    
+    for (RecSirIngrInfo *cell in self.detailListIngr) {
+        count_sum_price += [cell.kg doubleValue]*[cell.price doubleValue];
+        count_vklad += [cell.kg doubleValue]*[cell.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg;
+    }
+    for (RecSirIngrInfo *cell in self.detailListSir) {
+        count_sum_price += [cell.kg doubleValue]*[cell.price doubleValue];
+        count_vklad += [cell.kg doubleValue]*[cell.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg;
+    }
+    
+    
+   
+    NSArray *indexPaths = [[NSArray alloc] initWithObjects:[NSIndexPath indexPathForRow:2 inSection:3], [NSIndexPath indexPathForRow:3 inSection:3], nil];
+    [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
+   
+    //threecolTableViewCell *cell1 = [self.tableView cellForRowAtIndexPath:indexPath];
+    //cell1.header8.text = @"12345";
+    //cell1.header9.text = @"12345";
+    
+    
+}
+- (UITextField*)childrenCellFor:(UIView*)view
+{
+    if (!view)
+        return nil;
+    if ([view isKindOfClass:[UITableViewCell class]])
+        return (UITextField*)view;
+    return [self childrenCellFor:view.superview];
 }
 - (NSString*)doHtml {
     
