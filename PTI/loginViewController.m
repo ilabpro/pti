@@ -8,7 +8,7 @@
 
 #import "loginViewController.h"
 #import "MySingleton.h"
-
+#import "FMDB.h"
 
 @interface loginViewController ()
 
@@ -25,6 +25,7 @@ UIGestureRecognizer *tapper1;
 @synthesize passwordText;
 @synthesize hud;
 @synthesize responseData;
+@synthesize writableDBPath;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -76,7 +77,8 @@ UIGestureRecognizer *tapper1;
     NSData *jsonData = [responseString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:jsonData options: NSJSONReadingMutableContainers error: &e];
     
-   
+    FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
+    
     
     
     
@@ -85,6 +87,17 @@ UIGestureRecognizer *tapper1;
         [hud hide:YES];
         [[NSUserDefaults standardUserDefaults] setInteger:[[JSON objectForKey:@"uid"] integerValue] forKey:@"UserId"];
         [[NSUserDefaults standardUserDefaults] synchronize];
+        
+        
+        
+        
+        
+        //recreate db
+        [db open];
+         NSString *sql = @"UPDATE ingredients SET `user_price`='0';";
+        
+        [db executeStatements:sql];
+        [db close];
         
         [self performSegueWithIdentifier:@"goproducts" sender:nil];
     }

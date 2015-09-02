@@ -77,11 +77,11 @@ NSArray *searchReceptsArray;
     
     if([[[MySingleton sharedManager] selected_ingr_name] isEqual: @""])
     {
-        fResult= [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `Название`, `ФИО автора`, `ФИО ШТ`, `Ссылка` FROM products %@ ORDER BY `Название` ASC", where_str]];
+        fResult= [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `Название`, `ФИО автора`, `ФИО ШТ`, `Ссылка`, `new` FROM products %@ ORDER BY `Название` ASC", where_str]];
     }
     else
     {
-        fResult= [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `Название`, `ФИО автора`, `ФИО ШТ`, `Ссылка`, (select products_info.`id` from products_info where products_info.`product_list_name`=products.`Ссылка` and products_info.`raw_material`='%@' LIMIT 1) as have_ingr FROM products %@ GROUP BY products.`Ссылка` HAVING have_ingr > 0 ORDER BY `Название` ASC", [[MySingleton sharedManager] selected_ingr_name], where_str]];
+        fResult= [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `Название`, `ФИО автора`, `ФИО ШТ`, `Ссылка`, `new`, (select products_info.`id` from products_info where products_info.`product_list_name`=products.`Ссылка` and products_info.`raw_material`='%@' LIMIT 1) as have_ingr FROM products %@ GROUP BY products.`Ссылка` HAVING have_ingr > 0 ORDER BY `Название` ASC", [[MySingleton sharedManager] selected_ingr_name], where_str]];
     }
     
     
@@ -100,6 +100,7 @@ NSArray *searchReceptsArray;
         recInfo.recFio = [fResult stringForColumnIndex:2];
         recInfo.recFioSht = [fResult stringForColumnIndex:3];
         recInfo.recLink = [fResult stringForColumnIndex:4];
+        recInfo.recNew = [fResult stringForColumnIndex:5];
         
         
         [receptsArrayTemp addObject:recInfo];
@@ -256,8 +257,29 @@ NSArray *searchReceptsArray;
     cell.detailTextLabel.numberOfLines = 0;
     //cell.detailTextLabel.lineBreakMode = UILineBreakModeWordWrap;
     cell.detailTextLabel.textColor = [self colorWithHexString:@"BCBCC3"];
+    
+    
+    
     return cell;
 
+}
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+   
+    ReceptsInfo *rec = nil;
+    if (tableView == self.searchDisplayController.searchResultsTableView) {
+        rec = searchReceptsArray[indexPath.row];
+    } else {
+        rec = self.receptsArray[indexPath.row];
+    }
+    //NSLog(@"Test: %@ ---- %@", rec.recName, rec.recNew);
+    if([rec.recNew  isEqual: @"1"])
+    {
+        cell.backgroundColor = [self colorWithHexString:@"EBEBF1"];
+    }
+    else
+    {
+       cell.backgroundColor = [UIColor whiteColor];
+    }
 }
 - (CGFloat) tableView:(UITableView *)aTableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     

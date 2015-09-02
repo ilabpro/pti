@@ -16,6 +16,7 @@
     NSString *recFio;
     NSString *recFioSht;
     NSString *recLink;
+    NSString *recNew;
 }
 @property (strong, nonatomic) NSString *recId;
 @property (strong, nonatomic) NSString *recName;
@@ -23,4 +24,5 @@
 @property (strong, nonatomic) NSString *recFio;
 @property (strong, nonatomic) NSString *recFioSht;
 @property (strong, nonatomic) NSString *recLink;
+@property (strong, nonatomic) NSString *recNew;
 @end

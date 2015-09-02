@@ -51,7 +51,7 @@ NSArray *searchReceptsArray2;
     
     
     
-    fResult= [db executeQuery:[NSString stringWithFormat:@"SELECT *, (SELECT `Название` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `Название`, (SELECT `ФИО автора` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `ФИО автора`, (SELECT `ФИО ШТ` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `ФИО ШТ` FROM pr_users_history WHERE `user_id`='%ld' and `Название` IS NOT NULL ORDER BY `date_time` DESC LIMIT 200", (long)[[NSUserDefaults standardUserDefaults] integerForKey:@"UserId"]]];
+    fResult= [db executeQuery:[NSString stringWithFormat:@"SELECT *, (SELECT `Название` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `Название`, (SELECT `ФИО автора` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `ФИО автора`, (SELECT `ФИО ШТ` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `ФИО ШТ`, (SELECT `new` from products WHERE products.`Ссылка` = pr_users_history.`rec_link` limit 1) as `new` FROM pr_users_history WHERE `user_id`='%ld' and `Название` IS NOT NULL ORDER BY `date_time` DESC LIMIT 200", (long)[[NSUserDefaults standardUserDefaults] integerForKey:@"UserId"]]];
     
     
     
@@ -72,6 +72,7 @@ NSArray *searchReceptsArray2;
         recInfo.recFio = [fResult stringForColumnIndex:5];
         recInfo.recFioSht = [fResult stringForColumnIndex:6];
         recInfo.recLink = [fResult stringForColumnIndex:3];
+        recInfo.recNew = [fResult stringForColumnIndex:7];
         
         
         [receptsArrayTemp addObject:recInfo];
@@ -220,6 +221,24 @@ NSArray *searchReceptsArray2;
     cell.detailTextLabel.textColor = [self colorWithHexString:@"BCBCC3"];
     return cell;
     
+}
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    ReceptsInfo *rec = nil;
+    if (tableView == self.searchDisplayController.searchResultsTableView) {
+        rec = searchReceptsArray2[indexPath.row];
+    } else {
+        rec = self.receptsArray[indexPath.row];
+    }
+    //NSLog(@"Test: %@ ---- %@", rec.recName, rec.recNew);
+    if([rec.recNew  isEqual: @"1"])
+    {
+        cell.backgroundColor = [self colorWithHexString:@"EBEBF1"];
+    }
+    else
+    {
+        cell.backgroundColor = [UIColor whiteColor];
+    }
 }
 -(NSString *)getDateFromString:(NSString *)string
 {

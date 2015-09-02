@@ -116,7 +116,7 @@ UIGestureRecognizer *tapper;
     count_vklad = 0.0;
     
     NSMutableArray *recSirArrayTemp = [[NSMutableArray alloc] init];
-    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `raw_material`, `kg`, `raw_prop`, (SELECT `price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as price FROM products_info WHERE product_list_name='%@' and `type`='1'", [[MySingleton sharedManager] selected_recept_name]]];
+    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `raw_material`, `kg`, `raw_prop`, (SELECT `price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as price, (SELECT `user_price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as user_price FROM products_info WHERE product_list_name='%@' and `type`='1'", [[MySingleton sharedManager] selected_recept_name]]];
     while([fResult next])
     {
         
@@ -129,9 +129,21 @@ UIGestureRecognizer *tapper;
         recSirInfo.prop = [fResult stringForColumnIndex:2];
         count_prop += [fResult doubleForColumnIndex:2];
         count_prop_sir += [fResult doubleForColumnIndex:2];
-        recSirInfo.price = [fResult stringForColumnIndex:3];
         
-        count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:3];
+        if(![[fResult stringForColumnIndex:4]  isEqual: @"0"])
+        {
+            
+            recSirInfo.price = [fResult stringForColumnIndex:4];
+            count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:4];
+        }
+        else
+        {
+           recSirInfo.price = [fResult stringForColumnIndex:3];
+           count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:3];
+        }
+        
+        
+        
         
         
         [recSirArrayTemp addObject:recSirInfo];
@@ -151,7 +163,7 @@ UIGestureRecognizer *tapper;
     
     
     NSMutableArray *recIngrArrayTemp = [[NSMutableArray alloc] init];
-    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `raw_material`, `kg`, `raw_prop`, (SELECT `price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as price  FROM products_info WHERE product_list_name='%@' and `type`='2'", [[MySingleton sharedManager] selected_recept_name]]];
+    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `raw_material`, `kg`, `raw_prop`, (SELECT `price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as price, (SELECT `user_price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as user_price  FROM products_info WHERE product_list_name='%@' and `type`='2'", [[MySingleton sharedManager] selected_recept_name]]];
     while([fResult next])
     {
         
@@ -164,9 +176,18 @@ UIGestureRecognizer *tapper;
         recIngrInfo.prop = [fResult stringForColumnIndex:2];
         count_prop += [fResult doubleForColumnIndex:2];
         count_prop_ingr += [fResult doubleForColumnIndex:2];
-        recIngrInfo.price = [fResult stringForColumnIndex:3];
         
-        count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:3];
+        if(![[fResult stringForColumnIndex:4]  isEqual: @"0"])
+        {
+            recIngrInfo.price = [fResult stringForColumnIndex:4];
+            count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:4];
+        }
+        else
+        {
+            recIngrInfo.price = [fResult stringForColumnIndex:3];
+            count_sum_price += [fResult doubleForColumnIndex:1]*[fResult doubleForColumnIndex:3];
+        }
+        
         
         [recIngrArrayTemp addObject:recIngrInfo];
         //NSLog(@"%@", productsArray);
@@ -389,7 +410,13 @@ UIGestureRecognizer *tapper;
     
     recInf.price = theTextField.text;
     
+    FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
+    [db open];
     
+    NSString *sql = [NSString stringWithFormat:@"UPDATE ingredients SET `user_price`='%@' WHERE `ingredient`='%@';", theTextField.text, recInf.material];
+    
+    [db executeStatements:sql];
+    [db close];
     
     
     for (RecSirIngrInfo *cell in self.detailListIngr) {

@@ -201,7 +201,7 @@ NSArray *searchProductsArray;
     
     //recreate db
     
-    NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS pr_users_history ( id INTEGER, `date_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `user_id` INTEGER, `rec_link` TEXT);DROP TABLE IF EXISTS products;DROP TABLE IF EXISTS products_info;DROP TABLE IF EXISTS ingredients;CREATE TABLE products ( %@ );CREATE TABLE products_info ( %@ );CREATE TABLE ingredients ( %@ );", [JSON objectForKey:@"update_columns"], [JSON objectForKey:@"update_columns_prod"], [JSON objectForKey:@"update_columns_ingr"]];
+    NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS pr_users_history ( id INTEGER, `date_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `user_id` INTEGER, `rec_link` TEXT);DROP TABLE IF EXISTS products;DROP TABLE IF EXISTS products_info;DROP TABLE IF EXISTS ingredients;CREATE TABLE products ( %@ );CREATE TABLE products_info ( %@ );CREATE TABLE ingredients ( %@ , `user_price` TEXT NOT NULL DEFAULT '0');", [JSON objectForKey:@"update_columns"], [JSON objectForKey:@"update_columns_prod"], [JSON objectForKey:@"update_columns_ingr"]];
     
     
     

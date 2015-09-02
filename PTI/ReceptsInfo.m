@@ -15,4 +15,5 @@
 @synthesize recFio;
 @synthesize recFioSht;
 @synthesize recLink;
+@synthesize recNew;
 @end

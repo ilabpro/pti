@@ -16,4 +16,5 @@
 @property (weak, nonatomic) IBOutlet UITextField *passwordText;
 @property (nonatomic, copy) MBProgressHUD *hud;
 @property (nonatomic, copy) NSMutableData *responseData;
+@property (nonatomic, copy) NSString *writableDBPath;
 @end
