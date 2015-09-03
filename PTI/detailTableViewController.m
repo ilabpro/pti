@@ -16,6 +16,8 @@
 @interface detailTableViewController ()
 @property (weak, nonatomic) IBOutlet UILabel *recName;
 
+
+
 @end
 NSString *obolochka_rec;
 NSString *poteri_rec;
@@ -28,9 +30,16 @@ double count_prop_sir;
 
 double count_kg_ingr;
 double count_prop_ingr;
+UIPageControl *photos_pagecontrol;
+UIScrollView *photos_scrollView;
 
 double count_sum_price,count_vklad;
 UIGestureRecognizer *tapper;
+
+/*
+UIPageControl *pageControl;
+UIScrollView *scrollView;
+*/
 
 @implementation detailTableViewController
 @synthesize writableDBPath;
@@ -245,7 +254,7 @@ UIGestureRecognizer *tapper;
 
     // Return the number of rows in the section.
     if(section==0) {
-        return 2;
+        return 3;
     }
     else if(section==1) {
         
@@ -260,19 +269,120 @@ UIGestureRecognizer *tapper;
     }
     return 0;
 }
-
-
+-(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    
+    CGFloat pageWidth = photos_scrollView.frame.size.width;
+    
+    //       //int page = floor((scrollView.contentOffset.x - pageWidth*0.3) / pageWidth) + 1);
+    
+    
+    photos_pagecontrol.currentPage = (int)photos_scrollView.contentOffset.x / (int)pageWidth;
+    NSLog(@"CURRENT PAGE %ld", (long)photos_pagecontrol.currentPage);
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if(indexPath.section == 0 && indexPath.row == 0)
+    {
+        return 200;
+    }
+    return 40;
+}
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
     UITableViewCell *cell = nil;
     threecolTableViewCell *cell1 = nil;
     if(indexPath.section==0) {
-        cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
+        
+        
         if(indexPath.row==0){
+        cell1 = [tableView dequeueReusableCellWithIdentifier:@"photosCell" forIndexPath:indexPath];
+        
+            NSArray *photo = [NSArray arrayWithObjects:[UIImage imageNamed:@"test1"], [UIImage imageNamed:@"test2"], nil];
+            /*
+            scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, 320, 150)];
+             */
+            
+        
+            cell1.scrollView.backgroundColor = [UIColor clearColor];
+            
+            cell1.scrollView.indicatorStyle = UIScrollViewIndicatorStyleBlack; //Scroll bar style
+            cell1.scrollView.showsHorizontalScrollIndicator = NO;
+            
+            
+            [cell1.scrollView setDelegate:self];
+            //Show horizontal scroll bar
+            
+            cell1.scrollView.showsVerticalScrollIndicator = YES; //Close vertical scroll bar
+            cell1.scrollView.bounces = YES; //Cancel rebound effect
+            cell1.scrollView.pagingEnabled = YES; //Flat screen
+            //cell1.scrollView.contentSize = CGSizeMake(640, 200);
+            
+            
+            
+            
+            
+            //cell1.pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, 155, 320, 40)];
+            cell1.pageControl.numberOfPages = photo.count;
+            cell1.pageControl.currentPage = 0;
+            
+            //[cell.contentView addSubview:pageControl];
+            
+            
+            for(int i = 0; i < photo.count; i++)
+            {
+                CGRect frame;
+                
+                frame.origin.x = ((cell1.frame.size.width - 30) *i);
+                
+                frame.origin.y = 0;
+                frame.size = CGSizeMake(cell1.frame.size.width - 30, cell1.scrollView.frame.size.height);
+                
+                UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
+                
+                //imageView.backgroundColor = [UIColor yellowColor];
+                
+                imageView.clipsToBounds = YES;
+                
+                
+                
+                [imageView setImage:[photo objectAtIndex:i]];
+                
+                // Set image view to clip to bounds
+                //imageView.clipsToBounds = YES;
+                // Calculate aspect ratio of image
+                //CGFloat ar1 = imageView.image.size.width / imageView.image.size.height;
+                // Calculate aspect ratio of image view
+                //CGFloat ar2 = imageView.frame.size.width / imageView.frame.size.height;
+                // Set fill mode accordingly
+                //if (ar1 > ar2) {
+                    imageView.contentMode = UIViewContentModeScaleAspectFit;
+                //} else {
+                //    imageView.contentMode = UIViewContentModeScaleAspectFit;
+                //}
+                
+                
+                [cell1.scrollView addSubview:imageView];
+                
+                
+                
+            }
+            cell1.scrollView.contentSize = CGSizeMake((cell1.frame.size.width - 30)*photo.count, cell1.scrollView.frame.size.height);
+            
+            photos_pagecontrol = cell1.pageControl;
+            photos_scrollView = cell1.scrollView;
+            //[cell.contentView addSubview:scrollView];
+           return cell1;
+            
+            
+        }
+        else if(indexPath.row==1){
+            cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
             cell.textLabel.text = @"Примерная стоимость 1 кг.";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%.02f руб.", (count_sum_price/count_kg)];
         }
-        else if(indexPath.row==1) {
+        else if(indexPath.row==2) {
+            cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
             cell.textLabel.text = @"Оболочка";
             cell.detailTextLabel.text = obolochka_rec;
         }
@@ -387,6 +497,7 @@ UIGestureRecognizer *tapper;
     return cell;
   
 }
+
 - (void)countMoney:(UITextField *)theTextField {
     
     // Dispose of any resources that can be recreated.

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="15A263e" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="ANk-V9-bVF">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="15A279b" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="ANk-V9-bVF">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
@@ -833,6 +833,64 @@
                                     <outlet property="header9" destination="ukY-Lp-OY2" id="wWQ-le-Zf5"/>
                                 </connections>
                             </tableViewCell>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="photosCell" rowHeight="200" id="nBh-AK-UhL" customClass="threecolTableViewCell">
+                                <rect key="frame" x="0.0" y="182" width="600" height="27"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="nBh-AK-UhL" id="nnJ-dT-4XL">
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="26"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BIT-b6-U9H">
+                                            <rect key="frame" x="8" y="8" width="584" height="183"/>
+                                            <animations/>
+                                        </scrollView>
+                                        <pageControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" numberOfPages="3" translatesAutoresizingMaskIntoConstraints="NO" id="5RJ-SO-3Uf">
+                                            <rect key="frame" x="8" y="154" width="584" height="37"/>
+                                            <animations/>
+                                            <color key="pageIndicatorTintColor" red="0.92156862745098034" green="0.92156862745098034" blue="0.94509803921568625" alpha="1" colorSpace="calibratedRGB"/>
+                                            <color key="currentPageIndicatorTintColor" red="0.56470588239999997" green="0.14901960780000001" blue="0.27450980390000002" alpha="1" colorSpace="calibratedRGB"/>
+                                        </pageControl>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QBp-NV-I2q">
+                                            <rect key="frame" x="150" y="85" width="300" height="30"/>
+                                            <animations/>
+                                            <color key="backgroundColor" red="0.58431372550000005" green="0.058823529409999999" blue="0.20784313730000001" alpha="1" colorSpace="calibratedRGB"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="30" id="PG0-Gv-hZD"/>
+                                                <constraint firstAttribute="width" constant="300" id="lE7-EW-NuU"/>
+                                            </constraints>
+                                            <state key="normal" title="Показать изображения">
+                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                            </state>
+                                        </button>
+                                    </subviews>
+                                    <animations/>
+                                    <constraints>
+                                        <constraint firstAttribute="centerY" secondItem="QBp-NV-I2q" secondAttribute="centerY" id="1EB-hQ-mjc"/>
+                                        <constraint firstAttribute="centerX" secondItem="5RJ-SO-3Uf" secondAttribute="centerX" id="1Qd-aD-HVb"/>
+                                        <constraint firstAttribute="bottomMargin" secondItem="5RJ-SO-3Uf" secondAttribute="bottom" id="1fK-wC-dS4"/>
+                                        <constraint firstItem="BIT-b6-U9H" firstAttribute="leading" secondItem="nnJ-dT-4XL" secondAttribute="leadingMargin" id="6Ud-wE-qZj"/>
+                                        <constraint firstAttribute="centerX" secondItem="QBp-NV-I2q" secondAttribute="centerX" id="8Gr-TG-lWf"/>
+                                        <constraint firstItem="BIT-b6-U9H" firstAttribute="top" secondItem="nnJ-dT-4XL" secondAttribute="topMargin" id="Nvv-hQ-yLX"/>
+                                        <constraint firstItem="5RJ-SO-3Uf" firstAttribute="leading" secondItem="nnJ-dT-4XL" secondAttribute="leadingMargin" id="fMJ-FW-K0P"/>
+                                        <constraint firstAttribute="trailingMargin" secondItem="5RJ-SO-3Uf" secondAttribute="trailing" id="jwI-Fm-fOh"/>
+                                        <constraint firstAttribute="centerX" secondItem="BIT-b6-U9H" secondAttribute="centerX" id="lXA-mT-dPh"/>
+                                        <constraint firstAttribute="trailingMargin" secondItem="BIT-b6-U9H" secondAttribute="trailing" id="saX-aL-2WE"/>
+                                        <constraint firstAttribute="centerY" secondItem="BIT-b6-U9H" secondAttribute="centerY" id="xAT-K7-Utb"/>
+                                        <constraint firstItem="BIT-b6-U9H" firstAttribute="bottom" secondItem="nnJ-dT-4XL" secondAttribute="bottomMargin" id="xWy-Pa-8jB"/>
+                                    </constraints>
+                                    <variation key="default">
+                                        <mask key="constraints">
+                                            <exclude reference="lXA-mT-dPh"/>
+                                            <exclude reference="xAT-K7-Utb"/>
+                                        </mask>
+                                    </variation>
+                                </tableViewCellContentView>
+                                <animations/>
+                                <connections>
+                                    <outlet property="pageControl" destination="5RJ-SO-3Uf" id="Shg-g4-2FX"/>
+                                    <outlet property="scrollView" destination="BIT-b6-U9H" id="rgn-QV-N2A"/>
+                                </connections>
+                            </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="CellHeader2" id="Szg-2z-bto" customClass="twoTableViewCell">
                                 <rect key="frame" x="0.0" y="209" width="600" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
@@ -1436,10 +1494,10 @@
         <image name="print_image" width="25" height="25"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="L0i-6a-O1f"/>
         <segue reference="ejg-nf-W2g"/>
-        <segue reference="nnk-n9-iWk"/>
+        <segue reference="ghj-YP-D8W"/>
         <segue reference="dn9-Bb-EZU"/>
+        <segue reference="nnk-n9-iWk"/>
         <segue reference="Xrm-Rz-3pn"/>
         <segue reference="Vv4-xH-rsU"/>
     </inferredMetricsTieBreakers>

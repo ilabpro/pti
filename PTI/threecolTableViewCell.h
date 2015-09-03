@@ -21,6 +21,8 @@
 @property (weak, nonatomic) IBOutlet UILabel *header9;
 
 
+@property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (weak, nonatomic) IBOutlet UIPageControl *pageControl;
 
 
 @end

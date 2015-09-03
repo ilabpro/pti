@@ -77,6 +77,9 @@ UIGestureRecognizer *tapper1;
     NSData *jsonData = [responseString dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:jsonData options: NSJSONReadingMutableContainers error: &e];
     
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    writableDBPath = [documentsDirectory stringByAppendingPathComponent:@"pti.db"];
     FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
     
     

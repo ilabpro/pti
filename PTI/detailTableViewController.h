@@ -14,4 +14,6 @@
 @property (nonatomic, copy) NSArray *detailListIngr;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *print_but;
 @property (nonatomic, copy) NSString *writableDBPath;
+
+
 @end
