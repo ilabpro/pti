@@ -14,6 +14,7 @@
 
 
 @interface detailTableViewController ()
+
 @property (weak, nonatomic) IBOutlet UILabel *recName;
 
 
@@ -30,11 +31,18 @@ double count_prop_sir;
 
 double count_kg_ingr;
 double count_prop_ingr;
-UIPageControl *photos_pagecontrol;
-UIScrollView *photos_scrollView;
+
 
 double count_sum_price,count_vklad;
 UIGestureRecognizer *tapper;
+
+
+NSMutableArray *photo;
+NSMutableArray *photos_can_del;
+UIActionSheet *attachmentMenuSheet;
+int totalonlinewebCount;
+int totalofflinewebCount;
+FMDatabaseQueue* queue;
 
 /*
 UIPageControl *pageControl;
@@ -43,26 +51,37 @@ UIScrollView *scrollView;
 
 @implementation detailTableViewController
 @synthesize writableDBPath;
+@synthesize hud;
+@synthesize sliderView;
+@synthesize photos_scrollView;
+@synthesize photos_pagecontrol;
+@synthesize showwebbtn;
+@synthesize delbut;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    
+    photo = [[NSMutableArray alloc] init];
+    photos_can_del = [[NSMutableArray alloc] init];
     UIBarButtonItem *historyBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"Image_eye"] style:UIBarButtonItemStylePlain target:self action:@selector(gohistory)];
     UIBarButtonItem *homeBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"home_image"] style:UIBarButtonItemStylePlain target:self action:@selector(gohome)];
     
     self.navigationItem.rightBarButtonItems = [[NSArray alloc] initWithObjects:homeBarButtonItem, historyBarButtonItem, nil];
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    writableDBPath = [documentsDirectory stringByAppendingPathComponent:@"pti.db"];
+    queue = [FMDatabaseQueue databaseQueueWithPath:writableDBPath];
+    
+     [[NSNotificationCenter defaultCenter] addObserver:self  selector:@selector(orientationChanged:)    name:UIDeviceOrientationDidChangeNotification  object:nil];
     
     tapper = [[UITapGestureRecognizer alloc]
               initWithTarget:self action:@selector(handleSingleTap:)];
     tapper.cancelsTouchesInView = NO;
     [self.view addGestureRecognizer:tapper];
     
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
+   [photos_pagecontrol addTarget:self action:@selector(changePage:) forControlEvents:UIControlEventValueChanged];
     
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
 }
 - (void)handleSingleTap:(UITapGestureRecognizer *) sender
@@ -77,21 +96,42 @@ UIScrollView *scrollView;
     [self performSegueWithIdentifier:@"goHistory" sender:nil];
     
 }
+- (void)orientationChanged:(NSNotification *)notification{
+    [self buildSlider];
+    [self refreshcurrentPage];
+    
+}
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
     [self.navigationController setToolbarHidden:NO animated:YES];
     
+    
+   
+    
+    
+    
     [self doLog:[NSString stringWithFormat:@"Просмотр деталей рецептуры %@ через iOS", [[MySingleton sharedManager] current_recept_name]]];
     
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *documentsDirectory = [paths objectAtIndex:0];
-    writableDBPath = [documentsDirectory stringByAppendingPathComponent:@"pti.db"];
     
-    FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
-    [db open];
+    
+    
+   [queue inDatabase:^(FMDatabase *db) {
+    
+    
     
     FMResultSet *fResult = nil;
+    
+    
+    
+    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `imgs` FROM products WHERE `Ссылка`='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
+    [fResult next];
+    totalonlinewebCount = [fResult intForColumnIndex:1];
+    
+    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT count(*) FROM imgs WHERE `rec_name`='%@' and `type`='1'", [[MySingleton sharedManager] selected_recept_name]]];
+    [fResult next];
+    totalofflinewebCount = [fResult intForColumnIndex:0];
+    
     
     fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `product_name` FROM products_info WHERE product_list_name='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
     
@@ -125,6 +165,7 @@ UIScrollView *scrollView;
     count_vklad = 0.0;
     
     NSMutableArray *recSirArrayTemp = [[NSMutableArray alloc] init];
+    
     fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `raw_material`, `kg`, `raw_prop`, (SELECT `price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as price, (SELECT `user_price` FROM `ingredients` WHERE ingredients.ingredient=products_info.raw_material LIMIT 1) as user_price FROM products_info WHERE product_list_name='%@' and `type`='1'", [[MySingleton sharedManager] selected_recept_name]]];
     while([fResult next])
     {
@@ -203,6 +244,8 @@ UIScrollView *scrollView;
         
     }
     
+    
+    
    
     
     
@@ -219,19 +262,185 @@ UIScrollView *scrollView;
         count_vklad += [cell.kg doubleValue]*[cell.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg;
     }
     
+    [fResult close];
+    
+       
+      
+    
+   }];
+    
+    
+     [self buildSlider];
     
     
     
-    
-    
-    
-    
-    
-    
-    
+   
     
 }
 
+- (void)buildSlider
+{
+    [photo removeAllObjects];
+    [photos_can_del removeAllObjects];
+    
+    
+    
+    
+   
+    
+    
+    
+    
+    if(totalofflinewebCount < totalonlinewebCount)
+    {
+        showwebbtn.hidden = NO;
+    }
+    else
+    {
+        showwebbtn.hidden = YES;
+    }
+    
+    
+    
+    
+    [queue inDatabase:^(FMDatabase *db) {
+        
+        FMResultSet *fResult2 = nil;
+        
+        fResult2 = [db executeQuery:[NSString stringWithFormat:@"SELECT * FROM imgs WHERE `rec_name`='%@' ORDER BY `type` DESC, `id` DESC", [[MySingleton sharedManager] selected_recept_name]]];
+        
+        
+        
+        while([fResult2 next])
+        {
+            NSString *temp_img_path = [fResult2 stringForColumnIndex:3];
+            NSString *temp_img_type = [fResult2 stringForColumnIndex:2];
+            
+            
+            
+            UIImage* img = [UIImage imageWithContentsOfFile:temp_img_path];
+            
+            
+            if(img!=nil)
+            {
+                [photo addObject:img];
+                if([temp_img_type isEqual:@"2"])
+                {
+                    [photos_can_del addObject:[@([photo count]) stringValue]];
+                }
+            }
+            else if(img==nil && [temp_img_type isEqual:@"1"])
+            {
+                showwebbtn.hidden = NO;
+            }
+            else if(img==nil && [temp_img_type isEqual:@"2"])
+            {
+                //NSLog(@"test");
+                
+                
+                [db executeUpdate:@"DELETE FROM imgs WHERE `rec_name`=? and `name`=?", [[MySingleton sharedManager] selected_recept_name], temp_img_path];
+                
+                
+            }
+            
+            
+        }
+        [fResult2 close];
+    }];
+    
+    
+    
+    
+    
+    
+    [photos_scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    
+    [sliderView setNeedsLayout];
+    [sliderView layoutIfNeeded];
+    
+    if([photo count] > 0)
+    {
+        
+        
+        CGRect newFrame = sliderView.frame;
+        newFrame.size.height = 300;
+        [sliderView setFrame:newFrame];
+        [self.tableView setTableHeaderView:sliderView];
+        
+        [photos_scrollView setNeedsLayout];
+        [photos_scrollView layoutIfNeeded];
+        
+        photos_scrollView.backgroundColor = [UIColor clearColor];
+        photos_scrollView.indicatorStyle = UIScrollViewIndicatorStyleBlack; //Scroll bar style
+        photos_scrollView.showsHorizontalScrollIndicator = NO;
+        [photos_scrollView setDelegate:self];
+        photos_scrollView.showsVerticalScrollIndicator = YES; //Close vertical scroll bar
+        photos_scrollView.bounces = YES; //Cancel rebound effect
+        photos_scrollView.pagingEnabled = YES; //Flat screen
+        
+        photos_pagecontrol.numberOfPages = photo.count == 1 ? 0 : photo.count;
+        //photos_pagecontrol.currentPage = 0;
+        
+        
+        for(int i = 0; i < photo.count; i++)
+        {
+            CGRect frame;
+            
+            
+            frame.origin.x = ((photos_scrollView.frame.size.width + 0) *i);
+            
+            frame.origin.y = 0;
+            frame.size = CGSizeMake(photos_scrollView.frame.size.width, photos_scrollView.frame.size.height);
+            
+            UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
+            imageView.clipsToBounds = YES;
+            
+            
+            imageView.contentMode = UIViewContentModeScaleAspectFit;
+            
+            [imageView setImage:[photo objectAtIndex:i]];
+            
+            
+            
+            [photos_scrollView addSubview:imageView];
+            
+        }
+        
+        photos_scrollView.contentSize = CGSizeMake(photos_scrollView.frame.size.width*photo.count, photos_scrollView.frame.size.height);
+        
+        
+        
+    }
+    else
+    {
+        CGRect newFrame = sliderView.frame;
+        newFrame.size.height = 90;
+        [sliderView setFrame:newFrame];
+        [self.tableView setTableHeaderView:sliderView];
+    }
+    
+    if([photos_can_del containsObject: [@(photos_pagecontrol.currentPage+1) stringValue]])
+    {
+        [self showDelBut];
+    }
+    else
+    {
+        [self hideDelBut];
+    }
+    
+    
+
+}
+- (void)hideDelBut
+{
+   
+    delbut.hidden = YES;
+}
+- (void)showDelBut
+{
+    
+    delbut.hidden = NO;
+}
 - (void)viewWillDisappear:(BOOL)animated
 {
     [self.navigationController setToolbarHidden:YES animated:YES];
@@ -239,6 +448,7 @@ UIScrollView *scrollView;
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+    [[NSURLCache sharedURLCache] removeAllCachedResponses];
     
 }
 
@@ -254,7 +464,7 @@ UIScrollView *scrollView;
 
     // Return the number of rows in the section.
     if(section==0) {
-        return 3;
+        return 2;
     }
     else if(section==1) {
         
@@ -278,15 +488,382 @@ UIScrollView *scrollView;
     
     
     photos_pagecontrol.currentPage = (int)photos_scrollView.contentOffset.x / (int)pageWidth;
-    NSLog(@"CURRENT PAGE %ld", (long)photos_pagecontrol.currentPage);
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if(indexPath.section == 0 && indexPath.row == 0)
+    
+    if([photos_can_del containsObject: [@(photos_pagecontrol.currentPage+1) stringValue]])
     {
-        return 200;
+        [self showDelBut];
     }
-    return 40;
+    else
+    {
+        [self hideDelBut];
+    }
+    //NSLog(@"CURRENT PAGE %ld", (long)photos_pagecontrol.currentPage);
+}
+
+- (IBAction)showwebbtn:(id)sender
+{
+    
+    showwebbtn.hidden = YES;
+    
+    hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.mode = MBProgressHUDModeIndeterminate;
+    hud.labelText = @"Загрузка изображений...";
+    hud.dimBackground = YES;
+    __block NSError* error = nil;
+    
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        
+        
+        
+        
+        __block int totalonlinewebCount;
+       
+        __block int rec_id;
+        
+      [queue inDatabase:^(FMDatabase *db) {
+        
+        FMResultSet *fResult = nil;
+        
+        [db executeUpdate:@"DELETE FROM imgs WHERE `rec_name`=? and `type`='1'", [[MySingleton sharedManager] selected_recept_name]];
+        
+        fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `imgs` FROM products WHERE `Ссылка`='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
+        [fResult next];
+         totalonlinewebCount = [fResult intForColumnIndex:1];
+        rec_id = [fResult intForColumnIndex:0];
+        [fResult close];
+      }];
+        totalofflinewebCount=0;
+        for(int i = 1;i <= totalonlinewebCount;i++)
+        {
+            NSString *file_name = [NSString stringWithFormat:@"%d-%d.jpg",rec_id,i];
+            NSString *url_str = [NSString stringWithFormat:@"%@/rec_images/%@", [[MySingleton sharedManager] url_site],file_name];
+            NSURL* url = [NSURL URLWithString:url_str];
+            
+            
+            
+            NSData* data = [NSData dataWithContentsOfURL:url options:NSDataReadingUncached error:&error];
+            if(data==nil)
+            {
+                file_name = [NSString stringWithFormat:@"%d-%d.png",rec_id,i];
+                url_str = [NSString stringWithFormat:@"%@/rec_images/%@", [[MySingleton sharedManager] url_site],file_name];
+                url = [NSURL URLWithString:url_str];
+                data = [NSData dataWithContentsOfURL:url options:NSDataReadingUncached error:&error];
+            }
+            if(data!=nil)
+            {
+                NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+                NSString* fullPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:file_name];
+               [queue inDatabase:^(FMDatabase *db) {
+                [db executeUpdate:@"INSERT INTO imgs VALUES (null,?,1,?)", [[MySingleton sharedManager] selected_recept_name], fullPath];
+               }];
+                error = nil;
+                [data writeToFile:fullPath atomically:YES];
+                totalofflinewebCount++;
+            }
+            
+        }
+        
+        
+        
+        
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+           
+            [self buildSlider];
+            
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+            
+            if (error) {
+                
+               
+                
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Ошибка загрузки изображения"
+                                                                message:@"Не удалось загрузить файл."
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"Закрыть"
+                                                      otherButtonTitles:nil];
+                [alert show];
+            }
+            
+        });
+    });
+    
+    
+   
+    
+}
+- (IBAction)addimgbtn:(id)sender
+{
+    
+    
+    
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"Добавить фото рецептуры"
+                                                             delegate:(id)self
+                                                    cancelButtonTitle:@"Отмена"
+                                               destructiveButtonTitle: nil
+                                                    otherButtonTitles:@"Камера", @"Фотоальбом", nil];
+    
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        // In this case the device is an iPad.
+        [actionSheet showFromRect:[(UIButton *)sender frame] inView:self.view animated:YES];
+    }
+    else{
+        // In this case the device is an iPhone/iPod Touch.
+        [actionSheet showInView:self.view];
+    }
+    actionSheet.tag = 100;
+    
+}
+-(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex{
+    //[actionSheet dismissWithClickedButtonIndex:buttonIndex animated:NO];
+    if (actionSheet.tag == 100) {
+        //NSLog(@"The Normal action sheet.");
+        if(buttonIndex==0)
+        {
+            //camera
+            UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+            picker.delegate = (id)self;
+            picker.allowsEditing = NO;//ramka show
+            picker.sourceType = UIImagePickerControllerSourceTypeCamera;
+            [self presentViewController:picker animated:YES completion:NULL];
+            
+            
+        }
+        else if(buttonIndex==1)
+        {
+            //photoalbum
+            UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+            picker.delegate = (id)self;
+            picker.allowsEditing = NO;
+            picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+            [self presentViewController:picker animated:YES completion:NULL];
+           
+        }
+    }
+    else if (actionSheet.tag == 200){
+        if(buttonIndex==0)
+        {
+            //del image
+           
+            
+            
+            hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+            hud.mode = MBProgressHUDModeIndeterminate;
+            hud.labelText = @"Удаление изображения...";
+            hud.dimBackground = YES;
+            
+            dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+                
+                
+                [queue inDatabase:^(FMDatabase *db) {
+                    
+                    FMResultSet *fResult = nil;
+                    
+                    fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `id`,`name` FROM imgs WHERE `rec_name`='%@' ORDER BY `type` DESC, `id` DESC limit %@,1", [[MySingleton sharedManager] selected_recept_name], [@(photos_pagecontrol.currentPage) stringValue]]];
+                    [fResult next];
+                    
+                    NSString *temp_img_id = [fResult stringForColumnIndex:0];
+                    NSString *temp_img_path = [fResult stringForColumnIndex:1];
+                    [fResult close];
+                    NSLog(@"%@",temp_img_id);
+                    [db executeUpdate:@"DELETE FROM imgs WHERE `id`=?", temp_img_id];
+            
+                    [[NSFileManager defaultManager]removeItemAtPath:temp_img_path error:nil];
+                    
+                    
+                }];
+               
+                
+                
+                
+               
+                
+                
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    photos_pagecontrol.currentPage = photos_pagecontrol.currentPage == 0 ? 0 : photos_pagecontrol.currentPage--;
+                    
+                    [self buildSlider];
+                    
+                    [self refreshcurrentPage];
+                    
+                    [MBProgressHUD hideHUDForView:self.view animated:YES];
+                    
+                    
+                });
+            });
+            
+        }
+        
+    }
+    
+   // NSLog(@"Index = %ld - Title = %@", (long)buttonIndex, [actionSheet buttonTitleAtIndex:buttonIndex]);
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    
+     [picker dismissViewControllerAnimated:YES completion:NULL];
+    
+    
+    showwebbtn.hidden = YES;
+    hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.mode = MBProgressHUDModeIndeterminate;
+    hud.labelText = @"Обработка...";
+    hud.dimBackground = YES;
+    
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+   
+    
+    
+    
+        
+    if ([picker sourceType] == UIImagePickerControllerSourceTypeCamera) {
+        
+        __block int rec_id;
+        __block int count_all_images;
+        
+        [queue inDatabase:^(FMDatabase *db) {
+        FMResultSet *fResult = nil;
+        
+        
+        fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `imgs` FROM products WHERE `Ссылка`='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
+        [fResult next];
+        rec_id = [fResult intForColumnIndex:0];
+        
+        fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT count(*) FROM imgs WHERE `rec_name`='%@' and `type`='2'", [[MySingleton sharedManager] selected_recept_name]]];
+        [fResult next];
+        count_all_images = [fResult intForColumnIndex:0];
+            [fResult close];
+        }];
+        
+        
+        NSString *file_name = [NSString stringWithFormat:@"offline-%d-%d.jpg",rec_id,count_all_images++];
+        
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+        NSString* fullPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:file_name];
+        
+        UIImage* image = [info objectForKey:UIImagePickerControllerOriginalImage];
+        NSData *data = UIImageJPEGRepresentation (image, 0.3);
+        
+        [queue inDatabase:^(FMDatabase *db) {
+        [db executeUpdate:@"INSERT INTO imgs VALUES (null,?,2,?)", [[MySingleton sharedManager] selected_recept_name], fullPath];
+        }];
+        
+        [data writeToFile:fullPath  atomically:YES];
+        
+        
+         
+        
+        
+    } else {
+        //NSLog(@"info: library");
+        
+        
+        __block int rec_id;
+        __block int count_all_images;
+        
+        [queue inDatabase:^(FMDatabase *db) {
+        FMResultSet *fResult = nil;
+        
+        
+        fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `id`, `imgs` FROM products WHERE `Ссылка`='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
+        [fResult next];
+        rec_id = [fResult intForColumnIndex:0];
+        
+        fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT count(*) FROM imgs WHERE `rec_name`='%@' and `type`='2'", [[MySingleton sharedManager] selected_recept_name]]];
+        [fResult next];
+        count_all_images = [fResult intForColumnIndex:0];
+            [fResult close];
+        }];
+        
+        NSString *file_name = [NSString stringWithFormat:@"offline-%d-%d.jpg",rec_id,count_all_images++];
+        
+        NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+        NSString* fullPath = [[paths objectAtIndex:0] stringByAppendingPathComponent:file_name];
+        
+        UIImage* image = [info objectForKey:UIImagePickerControllerOriginalImage];
+        NSData *data = UIImageJPEGRepresentation (image, 0.3);
+        
+      [queue inDatabase:^(FMDatabase *db) {
+        [db executeUpdate:@"INSERT INTO imgs VALUES (null,?,2,?)", [[MySingleton sharedManager] selected_recept_name], fullPath];
+      }];
+        
+        [data writeToFile:fullPath  atomically:YES];
+        
+      
+        
+        
+        
+        
+        
+        
+    }
+     sleep(1);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            [self buildSlider];
+            photos_pagecontrol.currentPage = 0;
+            [self refreshcurrentPage];
+            
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+        });
+    });
+
+    
+    
+    
+    
+    
+}
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    
+    [picker dismissViewControllerAnimated:YES completion:NULL];
+    
+   
+    
+}
+- (IBAction)delimgbtn:(id)sender
+{
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"Удалить фото рецептуры?"
+                                                             delegate:(id)self
+                                                    cancelButtonTitle:@"Отмена"
+                                               destructiveButtonTitle: nil
+                                                    otherButtonTitles:@"Удалить", nil];
+    
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        // In this case the device is an iPad.
+        [actionSheet showFromRect:[(UIButton *)sender frame] inView:self.view animated:YES];
+    }
+    else{
+        // In this case the device is an iPhone/iPod Touch.
+        [actionSheet showInView:self.view];
+    }
+    actionSheet.tag = 200;
+}
+- (IBAction)changePage:(id)sender {
+    UIPageControl *pager=sender;
+    NSInteger page = pager.currentPage;
+    CGRect frame = photos_scrollView.frame;
+    frame.origin.x = frame.size.width * page;
+    frame.origin.y = 0;
+    [photos_scrollView scrollRectToVisible:frame animated:YES];
+}
+- (void)refreshcurrentPage {
+   
+    NSInteger page = photos_pagecontrol.currentPage;
+    CGRect frame = photos_scrollView.frame;
+    frame.origin.x = frame.size.width * page;
+    frame.origin.y = 0;
+    [photos_scrollView scrollRectToVisible:frame animated:YES];
+    if([photos_can_del containsObject: [@(photos_pagecontrol.currentPage+1) stringValue]])
+    {
+        [self showDelBut];
+    }
+    else
+    {
+        [self hideDelBut];
+    }
 }
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 
@@ -294,94 +871,13 @@ UIScrollView *scrollView;
     threecolTableViewCell *cell1 = nil;
     if(indexPath.section==0) {
         
-        
+       
         if(indexPath.row==0){
-        cell1 = [tableView dequeueReusableCellWithIdentifier:@"photosCell" forIndexPath:indexPath];
-        
-            NSArray *photo = [NSArray arrayWithObjects:[UIImage imageNamed:@"test1"], [UIImage imageNamed:@"test2"], nil];
-            /*
-            scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, 320, 150)];
-             */
-            
-        
-            cell1.scrollView.backgroundColor = [UIColor clearColor];
-            
-            cell1.scrollView.indicatorStyle = UIScrollViewIndicatorStyleBlack; //Scroll bar style
-            cell1.scrollView.showsHorizontalScrollIndicator = NO;
-            
-            
-            [cell1.scrollView setDelegate:self];
-            //Show horizontal scroll bar
-            
-            cell1.scrollView.showsVerticalScrollIndicator = YES; //Close vertical scroll bar
-            cell1.scrollView.bounces = YES; //Cancel rebound effect
-            cell1.scrollView.pagingEnabled = YES; //Flat screen
-            //cell1.scrollView.contentSize = CGSizeMake(640, 200);
-            
-            
-            
-            
-            
-            //cell1.pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, 155, 320, 40)];
-            cell1.pageControl.numberOfPages = photo.count;
-            cell1.pageControl.currentPage = 0;
-            
-            //[cell.contentView addSubview:pageControl];
-            
-            
-            for(int i = 0; i < photo.count; i++)
-            {
-                CGRect frame;
-                
-                frame.origin.x = ((cell1.frame.size.width - 30) *i);
-                
-                frame.origin.y = 0;
-                frame.size = CGSizeMake(cell1.frame.size.width - 30, cell1.scrollView.frame.size.height);
-                
-                UIImageView *imageView = [[UIImageView alloc] initWithFrame:frame];
-                
-                //imageView.backgroundColor = [UIColor yellowColor];
-                
-                imageView.clipsToBounds = YES;
-                
-                
-                
-                [imageView setImage:[photo objectAtIndex:i]];
-                
-                // Set image view to clip to bounds
-                //imageView.clipsToBounds = YES;
-                // Calculate aspect ratio of image
-                //CGFloat ar1 = imageView.image.size.width / imageView.image.size.height;
-                // Calculate aspect ratio of image view
-                //CGFloat ar2 = imageView.frame.size.width / imageView.frame.size.height;
-                // Set fill mode accordingly
-                //if (ar1 > ar2) {
-                    imageView.contentMode = UIViewContentModeScaleAspectFit;
-                //} else {
-                //    imageView.contentMode = UIViewContentModeScaleAspectFit;
-                //}
-                
-                
-                [cell1.scrollView addSubview:imageView];
-                
-                
-                
-            }
-            cell1.scrollView.contentSize = CGSizeMake((cell1.frame.size.width - 30)*photo.count, cell1.scrollView.frame.size.height);
-            
-            photos_pagecontrol = cell1.pageControl;
-            photos_scrollView = cell1.scrollView;
-            //[cell.contentView addSubview:scrollView];
-           return cell1;
-            
-            
-        }
-        else if(indexPath.row==1){
             cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
             cell.textLabel.text = @"Примерная стоимость 1 кг.";
             cell.detailTextLabel.text = [NSString stringWithFormat:@"%.02f руб.", (count_sum_price/count_kg)];
         }
-        else if(indexPath.row==2) {
+        else if(indexPath.row==1) {
             cell = [tableView dequeueReusableCellWithIdentifier:@"recPrice" forIndexPath:indexPath];
             cell.textLabel.text = @"Оболочка";
             cell.detailTextLabel.text = obolochka_rec;
@@ -521,13 +1017,12 @@ UIScrollView *scrollView;
     
     recInf.price = theTextField.text;
     
-    FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
-    [db open];
+    
     
     NSString *sql = [NSString stringWithFormat:@"UPDATE ingredients SET `user_price`='%@' WHERE `ingredient`='%@';", theTextField.text, recInf.material];
-    
+    [queue inDatabase:^(FMDatabase *db) {
     [db executeStatements:sql];
-    [db close];
+    }];
     
     
     for (RecSirIngrInfo *cell in self.detailListIngr) {
@@ -544,7 +1039,7 @@ UIScrollView *scrollView;
     NSArray *indexPaths = [[NSArray alloc] initWithObjects:[NSIndexPath indexPathForRow:2 inSection:3], [NSIndexPath indexPathForRow:3 inSection:3], nil];
     [self.tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
    
-    threecolTableViewCell *cell1 = [self.tableView cellForRowAtIndexPath:indexPath];
+    threecolTableViewCell *cell1 = (threecolTableViewCell*)[self.tableView cellForRowAtIndexPath:indexPath];
     cell1.header8.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/count_kg] doubleValue]];
     cell1.header9.text = [NSString stringWithFormat:@"%g", [[NSString stringWithFormat:@"%.2f", [recInf.kg doubleValue]*[recInf.price doubleValue]/(1-[poteri_rec doubleValue]/100)/count_kg] doubleValue]];
     
@@ -560,19 +1055,21 @@ UIScrollView *scrollView;
 }
 - (NSString*)doHtml {
     
-    FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
-    [db open];
     
+   /*
+    [queue inDatabase:^(FMDatabase *db) {
     FMResultSet *fResult = nil;
     
     fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `product_name` FROM products_info WHERE product_list_name='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
     
     [fResult next];
+    }];
+    */
     
     NSString* markupText =[NSString stringWithFormat:@"<html><head><meta charset=\"UTF-8\"><style>table, th, td{border: 1px solid #6e6e6e;}</style></head><body><h1>%@</h1>"
                            "<h3>Оболочка: %@</h3><table width=\"100%%\" border=\"0\"><tbody><tr><th style=\"text-align:left;width:30%%\">Сырье</th><th style=\"text-align:right;width:15%%\">"
                            "%.02f кг</th><th style=\"text-align:right\">%.02f%%</th><th style=\"text-align:right\">Цена за кг.</th><th style=\"text-align:right\">В фарше</th><th style=\"text-align:right\">В готовом продукте</th></tr>",[[MySingleton sharedManager] current_recept_name] ,obolochka_rec, count_kg_sir, count_prop_sir];//[fResult stringForColumnIndex:0]
-    [db close];
+    
     
     for (RecSirIngrInfo *recInf in self.detailListSir) {
         
@@ -595,17 +1092,19 @@ UIScrollView *scrollView;
     
     [self doLog:[NSString stringWithFormat:@"Отправка деталей рецептуры %@ на email через iOS", [[MySingleton sharedManager] current_recept_name]]];
     
-    FMDatabase* db = [FMDatabase databaseWithPath:writableDBPath];
-    [db open];
     
+    /*
+    [queue inDatabase:^(FMDatabase *db) {
     FMResultSet *fResult = nil;
     
     fResult = [db executeQuery:[NSString stringWithFormat:@"SELECT `product_name` FROM products_info WHERE product_list_name='%@' LIMIT 1", [[MySingleton sharedManager] selected_recept_name]]];
     
     [fResult next];
+    }];
+    */
     
     NSString *emailTitle = [NSString stringWithFormat:@"Детали рецептуры %@",[[MySingleton sharedManager] current_recept_name]];//!!!!!
-    [db close];
+    
     
     NSString *messageBody = @"Детали рецептуры в приложении";
     
@@ -704,49 +1203,5 @@ UIScrollView *scrollView;
     }
 }
 
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

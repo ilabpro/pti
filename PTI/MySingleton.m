@@ -11,6 +11,7 @@
 @implementation MySingleton
 
 @synthesize url_webservice;
+@synthesize url_site;
 @synthesize selected_product_name;
 @synthesize selected_product_search_type;
 @synthesize selected_ingr_name;
@@ -33,6 +34,7 @@
 - (id)init {
     if (self = [super init]) {
         url_webservice = @"http://protein.ilab.pro/ios_webservice.php";
+        url_site = @"http://protein.ilab.pro";
         selected_product_name = @"";
         selected_producttype_name = @"";
         selected_product_search_type = @"";

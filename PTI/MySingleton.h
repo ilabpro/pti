@@ -10,6 +10,7 @@
 
 @interface MySingleton : NSObject {
 NSString *url_webservice;
+NSString *url_site;
 NSString *selected_product_name;
 NSString *selected_producttype_name;
 NSString *selected_product_search_type;
@@ -20,6 +21,7 @@ NSString *current_recept_name;
 }
 
 @property (nonatomic, retain) NSString *url_webservice;
+@property (nonatomic, retain) NSString *url_site;
 @property (nonatomic, retain) NSString *selected_product_name;
 @property (nonatomic, retain) NSString *selected_producttype_name;
 @property (nonatomic, retain) NSString *selected_product_search_type;
