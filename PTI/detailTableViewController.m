@@ -625,7 +625,18 @@ UIScrollView *scrollView;
             picker.delegate = (id)self;
             picker.allowsEditing = NO;//ramka show
             picker.sourceType = UIImagePickerControllerSourceTypeCamera;
-            [self presentViewController:picker animated:YES completion:NULL];
+            if([[[UIDevice currentDevice] systemVersion] floatValue]>=8.0)
+            {
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    [self presentViewController:picker animated:YES completion:NULL];
+                }];
+                
+            }
+            else{
+                
+                [self presentViewController:picker animated:YES completion:NULL];
+            }
             
             
         }
@@ -636,7 +647,19 @@ UIScrollView *scrollView;
             picker.delegate = (id)self;
             picker.allowsEditing = NO;
             picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-            [self presentViewController:picker animated:YES completion:NULL];
+            if([[[UIDevice currentDevice] systemVersion] floatValue]>=8.0)
+            {
+                [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    
+                    [self presentViewController:picker animated:YES completion:NULL];
+                }];
+                
+            }
+            else{
+                
+                [self presentViewController:picker animated:YES completion:NULL];
+            }
+            
            
         }
     }
