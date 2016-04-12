@@ -108,6 +108,35 @@ NSArray *searchProductsArray;
     
     
 }
+- (void)doCheck
+{
+    
+    
+    
+    web_service_type_request = @"check_user";
+    
+    NSURL *aUrl = [NSURL URLWithString:[[MySingleton sharedManager] url_webservice]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:aUrl
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:60.0];
+    
+    [request setHTTPMethod:@"POST"];
+    NSUUID *oNSUUID = [[UIDevice currentDevice] identifierForVendor];
+    
+    NSString *postString = [NSString stringWithFormat:@"cmd=check_UID&uid=%@&session_id=%@",[[NSUserDefaults standardUserDefaults] stringForKey:@"UserId"],[oNSUUID UUIDString]];
+    
+    [request setHTTPBody:[postString dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    NSURLConnection *connection= [[NSURLConnection alloc] initWithRequest:request
+                                                                 delegate:self];
+    if(connection) {
+        
+    }
+    responseData = [[NSMutableData alloc] init];
+    
+    
+    
+}
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex==1) {
         [self performSegueWithIdentifier:@"gologin" sender:nil];
@@ -116,10 +145,21 @@ NSArray *searchProductsArray;
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [[MySingleton sharedManager] setSelected_product_name:@"all"];
-    if ([[[NSUserDefaults standardUserDefaults] stringForKey:@"last_db_check_update"] doubleValue] + (1 * 1 * 60 * 1000) <  [[NSDate date] timeIntervalSince1970]*1000 && [[NSUserDefaults standardUserDefaults] integerForKey:@"UserId"] != 0) {
-        /* Start Update */
+    
+    if([[NSUserDefaults standardUserDefaults] integerForKey:@"UserId"] != 0)
+    {
         
-        [self check_update];
+        
+        if ([[[NSUserDefaults standardUserDefaults] stringForKey:@"last_db_check_update"] doubleValue] + (1 * 1 * 60 * 1000) <  [[NSDate date] timeIntervalSince1970]*1000) {
+            /* Start Update */
+            
+            [self check_update];
+        }
+        else
+        {
+           [self doCheck];
+        }
+        
     }
 }
 -(BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
@@ -199,9 +239,12 @@ NSArray *searchProductsArray;
     
     
     
+    [[NSUserDefaults standardUserDefaults] setValue:[JSON objectForKey:@"usergroup"] forKey:@"UserGroup"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
     //recreate db
     
-    NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS pr_users_history ( id INTEGER, `date_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `user_id` INTEGER, `rec_link` TEXT);DROP TABLE IF EXISTS products;DROP TABLE IF EXISTS imgs;DROP TABLE IF EXISTS products_info;DROP TABLE IF EXISTS ingredients;CREATE TABLE products ( %@ );CREATE TABLE products_info ( %@ );CREATE TABLE ingredients ( %@ , `user_price` TEXT NOT NULL DEFAULT '0');CREATE TABLE imgs ( `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `rec_name` TEXT, `type` INTEGER, `name` TEXT);", [JSON objectForKey:@"update_columns"], [JSON objectForKey:@"update_columns_prod"], [JSON objectForKey:@"update_columns_ingr"]];
+    NSString *sql = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS pr_users_history ( id INTEGER, `date_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `user_id` INTEGER, `rec_link` TEXT);DROP TABLE IF EXISTS products;DROP TABLE IF EXISTS imgs;DROP TABLE IF EXISTS products_info;DROP TABLE IF EXISTS ingredients;DROP TABLE IF EXISTS ingredients_em;CREATE TABLE ingredients_em ( %@ );CREATE TABLE products ( %@ );CREATE TABLE products_info ( %@ );CREATE TABLE ingredients ( %@ , `user_price` TEXT NOT NULL DEFAULT '0');CREATE TABLE imgs ( `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `rec_name` TEXT, `type` INTEGER, `name` TEXT);",[JSON objectForKey:@"update_columns_ingr_em"], [JSON objectForKey:@"update_columns"], [JSON objectForKey:@"update_columns_prod"], [JSON objectForKey:@"update_columns_ingr"]];
     
     
     
@@ -265,6 +308,25 @@ NSArray *searchProductsArray;
     }
     [db commit];
     
+    [db beginTransaction];
+    for (NSDictionary *dict in [JSON objectForKey:@"update_ingr_em"]) {
+        NSMutableArray* cols = [[NSMutableArray alloc] init];
+        NSMutableArray* vals = [[NSMutableArray alloc] init];
+        for (id key in dict) {
+            [cols addObject:key];
+            [vals addObject:[dict objectForKey:key]];
+        }
+        NSMutableArray* newCols = [[NSMutableArray alloc] init];
+        NSMutableArray* newVals = [[NSMutableArray alloc] init];
+        for (int i = 0; i<[cols count]; i++) {
+            [newCols addObject:[NSString stringWithFormat:@"'%@'", [cols objectAtIndex:i]]];
+            [newVals addObject:[NSString stringWithFormat:@"'%@'", [vals objectAtIndex:i]]];
+        }
+        sql = [NSString stringWithFormat:@"insert into ingredients_em (%@) values (%@)", [newCols componentsJoinedByString:@", "], [newVals componentsJoinedByString:@", "]];
+        [db executeUpdate:sql];
+    }
+    [db commit];
+    
     
     [db close];
     
@@ -295,7 +357,10 @@ NSArray *searchProductsArray;
                                                        timeoutInterval:60.0];
     
     [request setHTTPMethod:@"POST"];
-    NSString *postString = @"cmd=sync_products_table";
+    NSString *postString = [NSString stringWithFormat:@"cmd=sync_products_table&uid=%ld", (long)[[NSUserDefaults standardUserDefaults] integerForKey:@"UserId"]];
+    
+    
+    
     web_service_type_request = @"sync_products_table";
     [request setHTTPBody:[postString dataUsingEncoding:NSUTF8StringEncoding]];
     
@@ -360,6 +425,16 @@ NSArray *searchProductsArray;
     NSData *jsonData = [responseString dataUsingEncoding:NSUTF8StringEncoding];
     JSON = [NSJSONSerialization JSONObjectWithData:jsonData options: NSJSONReadingMutableContainers error: &e];
     
+    
+    if([web_service_type_request  isEqual: @"check_user"]) {
+        
+        if ([[JSON objectForKey:@"cmd"]  isEqual: @"exit"])
+        {
+           
+           [self performSegueWithIdentifier:@"gologin" sender:nil];
+        }
+    }
+    
     if([web_service_type_request  isEqual: @"sync_products_table"]) {
         
         
@@ -372,7 +447,7 @@ NSArray *searchProductsArray;
         
         [hud showWhileExecuting:@selector(doUpdate) onTarget:self withObject:nil animated:YES];
         
-        //NSLog(@"Response from webservice: %@", JSON);
+        
     }
     
     if([web_service_type_request  isEqual: @"sync_check_update"]) {

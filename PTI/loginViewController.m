@@ -45,7 +45,9 @@ UIGestureRecognizer *tapper1;
                                                        timeoutInterval:60.0];
     
     [request setHTTPMethod:@"POST"];
-    NSString *postString = [NSString stringWithFormat:@"cmd=login&login=%@&password=%@",loginText.text, passwordText.text];
+    NSUUID *oNSUUID = [[UIDevice currentDevice] identifierForVendor];
+    
+    NSString *postString = [NSString stringWithFormat:@"cmd=login&login=%@&password=%@&session_id=%@",loginText.text, passwordText.text, [oNSUUID UUIDString]];
     
     
    
@@ -89,6 +91,7 @@ UIGestureRecognizer *tapper1;
     {
         [hud hide:YES];
         [[NSUserDefaults standardUserDefaults] setInteger:[[JSON objectForKey:@"uid"] integerValue] forKey:@"UserId"];
+        [[NSUserDefaults standardUserDefaults] setValue:[JSON objectForKey:@"ugroup"] forKey:@"UserGroup"];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         

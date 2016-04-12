@@ -137,6 +137,7 @@
     
     // Create the coordinator and store
     
+    
     _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"PTI.sqlite"];
     NSError *error = nil;

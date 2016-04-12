@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface productsViewController : UINavigationController
-
+@property (nonatomic, copy) NSMutableData *responseData;
 @end

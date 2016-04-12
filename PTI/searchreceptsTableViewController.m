@@ -16,6 +16,8 @@
 
 @end
 NSArray *searchReceptsArray;
+NSMutableData *responseData2;
+NSDictionary *JSON2;
 
 @implementation searchreceptsTableViewController
 
@@ -37,7 +39,65 @@ NSArray *searchReceptsArray;
     
     //NSLog(@"%@", [[MySingleton sharedManager] selected_product_name]);
     [self reloadRecepts];
+    
+    
+    if([[NSUserDefaults standardUserDefaults] integerForKey:@"UserId"] != 0)
+    {
+        [self doCheck];
+    }
+    
+    
+    
+    
 }
+- (void)doCheck
+{
+    
+    NSURL *aUrl = [NSURL URLWithString:[[MySingleton sharedManager] url_webservice]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:aUrl
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:60.0];
+    
+    [request setHTTPMethod:@"POST"];
+    NSUUID *oNSUUID = [[UIDevice currentDevice] identifierForVendor];
+    
+    NSString *postString = [NSString stringWithFormat:@"cmd=check_UID&uid=%@&session_id=%@",[[NSUserDefaults standardUserDefaults] stringForKey:@"UserId"],[oNSUUID UUIDString]];
+    
+    [request setHTTPBody:[postString dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    NSURLConnection *connection= [[NSURLConnection alloc] initWithRequest:request
+                                                                 delegate:self];
+    if(connection) {
+        
+    }
+    responseData2 = [[NSMutableData alloc] init];
+    
+    
+    
+}
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+   
+    [responseData2 appendData:data];
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    NSString *responseString = [[NSString alloc] initWithData:responseData2 encoding:NSUTF8StringEncoding];
+    NSError *e = nil;
+    NSData *jsonData = [responseString dataUsingEncoding:NSUTF8StringEncoding];
+    JSON2 = [NSJSONSerialization JSONObjectWithData:jsonData options: NSJSONReadingMutableContainers error: &e];
+    
+    
+        if ([[JSON2 objectForKey:@"cmd"]  isEqual: @"exit"])
+        {
+            
+            [self performSegueWithIdentifier:@"gologinexit" sender:nil];
+        }
+}
+
+
+
 - (void)reloadRecepts {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];

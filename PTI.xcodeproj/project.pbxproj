@@ -30,6 +30,7 @@
 		773BBC7A1B1CAEF300126B5D /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 773BBC791B1CAEF300126B5D /* MessageUI.framework */; };
 		773BBC7D1B1F211D00126B5D /* forgotViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 773BBC7C1B1F211D00126B5D /* forgotViewController.m */; };
 		773BBC801B1F294B00126B5D /* registerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 773BBC7F1B1F294B00126B5D /* registerViewController.m */; };
+		774E16FF1BE23C73007AF5FB /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 774E16FE1BE23C73007AF5FB /* Launch Screen.storyboard */; };
 		7753609E1AF115D800A5D1C3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7753609D1AF115D800A5D1C3 /* main.m */; };
 		775360A11AF115D800A5D1C3 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 775360A01AF115D800A5D1C3 /* AppDelegate.m */; };
 		775360A41AF115D800A5D1C3 /* PTI.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 775360A21AF115D800A5D1C3 /* PTI.xcdatamodeld */; };
@@ -97,6 +98,7 @@
 		773BBC7C1B1F211D00126B5D /* forgotViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = forgotViewController.m; sourceTree = "<group>"; };
 		773BBC7E1B1F294B00126B5D /* registerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = registerViewController.h; sourceTree = "<group>"; };
 		773BBC7F1B1F294B00126B5D /* registerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = registerViewController.m; sourceTree = "<group>"; };
+		774E16FE1BE23C73007AF5FB /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		775360981AF115D800A5D1C3 /* PTI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PTI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7753609C1AF115D800A5D1C3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7753609D1AF115D800A5D1C3 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 		7753609A1AF115D800A5D1C3 /* PTI */ = {
 			isa = PBXGroup;
 			children = (
+				774E16FE1BE23C73007AF5FB /* Launch Screen.storyboard */,
 				77385CA71B15D426003F1D38 /* productsViewController.h */,
 				77385CA81B15D426003F1D38 /* productsViewController.m */,
 				773BBC521B18721000126B5D /* ProductInfo.h */,
@@ -198,17 +201,17 @@
 				773BBC7F1B1F294B00126B5D /* registerViewController.m */,
 				77385CAA1B15DFDB003F1D38 /* mainTableViewController.h */,
 				77385CAB1B15DFDB003F1D38 /* mainTableViewController.m */,
-				77D57D8D1B511B5100F5AE1E /* prodtypesTableViewController.h */,
-				77D57D8E1B511B5100F5AE1E /* prodtypesTableViewController.m */,
 				773BBC731B1C48DF00126B5D /* countpriceTableViewController.h */,
 				773BBC741B1C48DF00126B5D /* countpriceTableViewController.m */,
-				773BBC611B1B114B00126B5D /* searchreceptsTableViewController.h */,
-				773BBC621B1B114B00126B5D /* searchreceptsTableViewController.m */,
 				77D57D901B51458100F5AE1E /* historyTableViewController.h */,
 				77D57D911B51458100F5AE1E /* historyTableViewController.m */,
-				775360A81AF115D800A5D1C3 /* Main.storyboard */,
 				77385CB01B15F68C003F1D38 /* loginViewController.h */,
 				77385CB11B15F68C003F1D38 /* loginViewController.m */,
+				773BBC611B1B114B00126B5D /* searchreceptsTableViewController.h */,
+				773BBC621B1B114B00126B5D /* searchreceptsTableViewController.m */,
+				77D57D8D1B511B5100F5AE1E /* prodtypesTableViewController.h */,
+				77D57D8E1B511B5100F5AE1E /* prodtypesTableViewController.m */,
+				775360A81AF115D800A5D1C3 /* Main.storyboard */,
 				773BBC671B1B2A9300126B5D /* detailTableViewController.h */,
 				773BBC681B1B2A9300126B5D /* detailTableViewController.m */,
 				775360AB1AF115D800A5D1C3 /* Images.xcassets */,
@@ -344,6 +347,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				774E16FF1BE23C73007AF5FB /* Launch Screen.storyboard in Resources */,
 				775360AA1AF115D800A5D1C3 /* Main.storyboard in Resources */,
 				775360AC1AF115D800A5D1C3 /* Images.xcassets in Resources */,
 			);
